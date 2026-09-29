@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Loader2, RefreshCw, Save } from "lucide-react";
+import { Check, Loader2, RefreshCw, Save, Trash2 } from "lucide-react";
 import type { ProductGeneration } from "../lib/types";
-import { approveGeneration, generateCaption, generateImage, updateGeneration } from "../lib/api";
+import { approveGeneration, deleteGeneration, generateCaption, generateImage, updateGeneration } from "../lib/api";
 
 export function PreviewPanel({ initial }: { initial: ProductGeneration }) {
   const [generation, setGeneration] = useState(initial);
@@ -16,6 +16,17 @@ export function PreviewPanel({ initial }: { initial: ProductGeneration }) {
     try {
       setGeneration(await action());
       setMessage("Saved.");
+    } finally {
+      setBusy("");
+    }
+  }
+
+  async function remove() {
+    if (!window.confirm("Delete this generation and its stored images?")) return;
+    setBusy("delete");
+    try {
+      await deleteGeneration(generation.id);
+      window.location.href = "/history";
     } finally {
       setBusy("");
     }
@@ -83,6 +94,11 @@ export function PreviewPanel({ initial }: { initial: ProductGeneration }) {
             Approve
           </button>
         </div>
+
+        <button className="btn btn-secondary mt-2 w-full border-clay/30 text-clay" disabled={!!busy} onClick={remove}>
+          {busy === "delete" ? <Loader2 className="animate-spin" size={16} /> : <Trash2 size={16} />}
+          Delete generation
+        </button>
 
         {message ? <p className="mt-4 text-sm text-moss">{message}</p> : null}
         <div className="mt-5 rounded-md bg-paper p-3 text-sm text-black/70">
